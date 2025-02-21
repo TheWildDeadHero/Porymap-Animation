@@ -648,12 +648,18 @@ function getTileImageDimensions(tiles) {
         if (hasRow1 = canCombine_Horizontal(posData, 0, 1)) {
             // Merge positions 0 and 1 into a single wide position
             dimensions[0 + posOffset].w = tileWidth * 2;
+            if (posData[0].tile.xflip) {
+                dimensions[0 + posOffset].xOffset = dimensions[1 + posOffset].xOffset;
+            }
             dimensions[1 + posOffset] = undefined;
             posData[1] = undefined;
         }
         if (hasRow2 = canCombine_Horizontal(posData, 2, 3)) {
             // Merge positions 2 and 3 into a single wide position;
             dimensions[2 + posOffset].w = tileWidth * 2;
+            if (posData[2].tile.xflip) {
+                dimensions[2 + posOffset].xOffset = dimensions[3 + posOffset].xOffset;
+            }
             dimensions[3 + posOffset] = undefined;
             posData[3] = undefined;
         }
@@ -665,12 +671,18 @@ function getTileImageDimensions(tiles) {
             // Merge positions 0 and 2 into a single tall position
             // If 0 and 2 were already wide positions this creates a square
             dimensions[0 + posOffset].h = tileHeight * 2;
+            if (posData[0].tile.yflip) {
+                dimensions[0 + posOffset].yOffset = dimensions[2 + posOffset].yOffset;
+            }
             dimensions[2 + posOffset] = undefined;
             posData[2] = undefined;
         }
         if (canCombine_Vertical(posData, 1, 3)) {
             // Merge positions 1 and 3 into a single tall position
             dimensions[1 + posOffset].h = tileHeight * 2;
+            if (posData[1].tile.yflip) {
+                dimensions[1 + posOffset].yOffset = dimensions[3 + posOffset].yOffset;
+            }
             dimensions[3 + posOffset] = undefined;
             posData[3] = undefined;
         }
@@ -690,19 +702,33 @@ function getImageDataY(anim) { return Math.floor(anim.index * tileWidth / anim.i
 function canCombine(data, a, b) {
     return (data[a] && data[b]
          && data[a].filepath == data[b].filepath
-         && data[a].tile.xflip == data[b].tile.xflip
-         && data[a].tile.yflip == data[b].tile.yflip
          && data[a].tile.palette == data[b].tile.palette);
 }
-function canCombine_Horizontal(data, a, b) {
-    return (canCombine(data, a, b)
-         && data[a].x == (data[b].x - tileWidth)
-         && data[a].y == data[b].y);
+function canCombine_Horizontal(data, left, right) {
+    if (!canCombine(data, left, right) || data[left].y != data[right].y)
+        return false;
+
+    if (data[left].x == (data[right].x - tileWidth)) {
+        // Tiles are positioned as in the image, neither can be flipped.
+        return !data[left].tile.xflip && !data[right].tile.xflip;
+    } else if (data[right].x == (data[left].x - tileWidth)) {
+        // Tiles are inverted relative to the image, both must be flipped.
+        return data[right].tile.xflip && data[left].tile.xflip;
+    }
+    return false;
 }
-function canCombine_Vertical(data, a, b) {
-    return (canCombine(data, a, b)
-         && data[a].x == data[b].x
-         && data[a].y == (data[b].y - tileHeight));
+function canCombine_Vertical(data, top, bottom) {
+    if (!canCombine(data, top, bottom) || data[top].x != data[bottom].x)
+        return false;
+
+    if (data[top].y == (data[bottom].y - tileHeight)) {
+        // Tiles are positioned as in the image, neither can be flipped.
+        return !data[top].tile.yflip && !data[bottom].tile.yflip;
+    } else if (data[bottom].y == (data[top].y - tileHeight)) {
+        // Tiles are inverted relative to the image, both must be flipped.
+        return data[bottom].tile.yflip && data[top].tile.yflip;
+    }
+    return false;
 }
 
 
