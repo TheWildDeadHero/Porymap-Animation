@@ -702,33 +702,25 @@ function getImageDataY(anim) { return Math.floor(anim.index * tileWidth / anim.i
 function canCombine(data, a, b) {
     return (data[a] && data[b]
          && data[a].filepath == data[b].filepath
+         && data[a].tile.xflip == data[b].tile.xflip
+         && data[a].tile.yflip == data[b].tile.yflip
          && data[a].tile.palette == data[b].tile.palette);
 }
-function canCombine_Horizontal(data, left, right) {
-    if (!canCombine(data, left, right) || data[left].y != data[right].y)
+function canCombine_Horizontal(data, a, b) {
+    if (!canCombine(data, a, b) || data[a].y != data[b].y)
         return false;
 
-    if (data[left].x == (data[right].x - tileWidth)) {
-        // Tiles are positioned as in the image, neither can be flipped.
-        return !data[left].tile.xflip && !data[right].tile.xflip;
-    } else if (data[right].x == (data[left].x - tileWidth)) {
-        // Tiles are inverted relative to the image, both must be flipped.
-        return data[right].tile.xflip && data[left].tile.xflip;
-    }
-    return false;
+    let left = data[a].tile.xflip ? b : a;
+    let right = data[a].tile.xflip ? a : b;
+    return data[left].x == (data[right].x - tileWidth);
 }
-function canCombine_Vertical(data, top, bottom) {
-    if (!canCombine(data, top, bottom) || data[top].x != data[bottom].x)
+function canCombine_Vertical(data, a, b) {
+    if (!canCombine(data, a, b) || data[a].x != data[b].x)
         return false;
 
-    if (data[top].y == (data[bottom].y - tileHeight)) {
-        // Tiles are positioned as in the image, neither can be flipped.
-        return !data[top].tile.yflip && !data[bottom].tile.yflip;
-    } else if (data[bottom].y == (data[top].y - tileHeight)) {
-        // Tiles are inverted relative to the image, both must be flipped.
-        return data[bottom].tile.yflip && data[top].tile.yflip;
-    }
-    return false;
+    let top = data[a].tile.yflip ? b : a;
+    let bottom = data[a].tile.yflip ? a : b;
+    return data[top].y == (data[bottom].y - tileHeight);
 }
 
 
