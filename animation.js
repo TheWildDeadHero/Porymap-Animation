@@ -130,17 +130,42 @@ export function onProjectOpened(projectPath) {
 }
 
 export function onMapOpened(newMapName) {
-    overlay.clear();
     mapName = newMapName;
-    mapWidth = map.getWidth();
-    mapHeight = map.getHeight();
-    loadAnimations = true;
+    if (!verifyPorymapVersion(6,0,0)) {
+        // onLayoutOpened was introduced in 6.0.0, and will handle this behavior instead.
+        setMapSize(map.getWidth(), map.getHeight());
+    }
+}
+
+export function onLayoutOpened(newLayoutName) {
+    mapName = newLayoutName;
+    setMapSize(map.getWidth(), map.getHeight());
 }
 
 export function onMapResized(oldWidth, oldHeight, newWidth, newHeight) {
+    // Arguments for onMapResized were changed in 6.0.0
+    if (verifyPorymapVersion(6,0,0))
+        return;
+    setMapSize(newWidth, newHeight);
+}
+
+export function onMapResized(oldWidth, oldHeight, delta) {
+    // Arguments for onMapResized were changed in 6.0.0
+    if (!verifyPorymapVersion(6,0,0))
+        return;
+
+    setMapSize(oldWidth + delta.left + delta.right,
+               oldHeight + delta.top + delta.bottom);
+
+    if (delta.left != 0 || delta.top != 0) {
+        onMapShifted(delta.left, delta.top);
+    }
+}
+
+function setMapSize(w, h) {
     overlay.clear();
-    mapWidth = newWidth;
-    mapHeight = newHeight;
+    mapWidth = w;
+    mapHeight = h;
     loadAnimations = true;
 }
 
